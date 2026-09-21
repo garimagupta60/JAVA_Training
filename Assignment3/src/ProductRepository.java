@@ -1,4 +1,4 @@
-﻿import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,7 +7,10 @@ public class ProductRepository {
 
     private final Map<Integer, Product> products = new HashMap<>();
 
-    public Product findById(int id) {
+    public Product findById(Integer id) {
+        if (id == null) {
+            return null;
+        }
         return products.get(id);
     }
 
@@ -17,7 +20,7 @@ public class ProductRepository {
 
     public void save(Product product) {
 
-        if (product == null) {
+        if (product == null || product.getId() == null) {
             return;
         }
 
@@ -31,12 +34,14 @@ public class ProductRepository {
     }
 
     public void update(Product product) {
-        if (product != null && products.containsKey(product.getId())) {
+        if (product != null && product.getId() != null && products.containsKey(product.getId())) {
             products.put(product.getId(), product);
         }
     }
 
-    public void delete(int id) {
-        products.remove(id);
+    public void delete(Integer id) {
+        if (id != null) {
+            products.remove(id);
+        }
     }
 }
