@@ -4,43 +4,54 @@ import java.util.Set;
 public class Order {
 
     private final Integer id;
-    private final Set<Integer> productIds;
+    private final Set<Product> products;
 
     public Order(Integer id) {
         this.id = id;
-        this.productIds = new HashSet<>();
+        this.products = new HashSet<>();
     }
 
-    public Order(Integer id, Set<Integer> productIds) {
+    public Order(Integer id, Set<Product> products) {
         this.id = id;
-        this.productIds = productIds != null ? new HashSet<>(productIds) : new HashSet<>();
+        this.products = products != null ? new HashSet<>(products) : new HashSet<>();
     }
 
     public Integer getId() {
         return id;
     }
 
-    public Set<Integer> getProductIds() {
-        return Set.copyOf(productIds);
+    public Set<Product> getProducts() {
+        return Set.copyOf(products);
     }
 
-    public void addProduct(Integer productId) {
-        if (productId != null) {
-            productIds.add(productId);
+    public void addProduct(Product product) {
+        if (product != null) {
+            products.add(product);
         }
     }
 
-    public void removeProduct(Integer productId) {
-        if (productId != null) {
-            productIds.remove(productId);
+    public void removeProduct(Product product) {
+        if (product != null) {
+            products.remove(product);
         }
+    }
+
+    public Double calculateOrderPrice() {
+        double total = 0.0;
+        for (Product product : products) {
+            if (product != null && product.getPrice() != null) {
+                total += product.getPrice();
+            }
+        }
+        return total;
     }
 
     @Override
     public String toString() {
         return "Order{" +
                 "id=" + id +
-                ", productIds=" + productIds +
+                ", products=" + products +
+                ", totalPrice=" + calculateOrderPrice() +
                 '}';
     }
 }

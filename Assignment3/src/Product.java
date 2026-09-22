@@ -1,3 +1,5 @@
+import java.util.Objects;
+
 public class Product {
     private final Integer id;
     private String name;
@@ -27,6 +29,22 @@ public class Product {
 
     public void setPrice(Double price) {
         this.price = price;
+    }
+
+    @Override
+    public boolean equals(Object otherObject) {
+        if (this == otherObject)
+            return true;
+        if (otherObject == null || getClass() != otherObject.getClass())
+            return false;
+        Product otherProduct = (Product) otherObject;
+
+        return Objects.equals(id, otherProduct.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
     @Override

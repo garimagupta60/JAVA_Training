@@ -1,4 +1,4 @@
-﻿import java.util.HashSet;
+import java.util.HashSet;
 import java.util.Set;
 
 public class Main {
@@ -9,7 +9,7 @@ public class Main {
         OrderRepository orderRepository = new OrderRepository();
 
         testProductRepository(productRepository);
-        testOrderRepository(orderRepository);
+        testOrderRepository(orderRepository, productRepository);
     }
 
     private static void testProductRepository(ProductRepository productRepo) {
@@ -45,25 +45,31 @@ public class Main {
         }
     }
 
-    private static void testOrderRepository(OrderRepository orderRepo) {
+    private static void testOrderRepository(OrderRepository orderRepo, ProductRepository productRepo) {
+
+        Product p101 = productRepo.findById(101);
+        Product p102 = productRepo.findById(102);
+        Product p103 = productRepo.findById(103);
+        Product p104 = productRepo.findById(104);
 
         Order order1 = new Order(5001);
-        order1.addProduct(101);
-        order1.addProduct(103);
-        order1.addProduct(104);
-        order1.addProduct(101);
+        order1.addProduct(p101);
+        order1.addProduct(p103);
+        order1.addProduct(p104);
+        order1.addProduct(p101); // Attempt duplicate add
 
         orderRepo.save(order1);
 
-        Set<Integer> productIds = new HashSet<>();
-        productIds.add(102);
-        productIds.add(105);
+        Set<Product> products5002 = new HashSet<>();
+        products5002.add(p102);
+        products5002.add(p103);
 
-        orderRepo.save(new Order(5002, productIds));
+        orderRepo.save(new Order(5002, products5002));
 
         System.out.println("\nAll Orders");
         for (Order order : orderRepo.findAll()) {
             System.out.println(order);
+            System.out.println("Calculated Order Price: " + order.calculateOrderPrice());
         }
 
         System.out.println("\nFind order with ID 5001");
@@ -74,12 +80,12 @@ public class Main {
 
         System.out.println("\nUpdate order with ID 5002");
 
-        Set<Integer> updatedProductIds = new HashSet<>();
-        updatedProductIds.add(102);
-        updatedProductIds.add(103);
-        updatedProductIds.add(104);
+        Set<Product> updatedProducts = new HashSet<>();
+        updatedProducts.add(p102);
+        updatedProducts.add(p103);
+        updatedProducts.add(p104);
 
-        orderRepo.update(new Order(5002, updatedProductIds));
+        orderRepo.update(new Order(5002, updatedProducts));
 
         System.out.println("\nDelete order with ID 5001");
         orderRepo.delete(5001);
@@ -87,6 +93,7 @@ public class Main {
         System.out.println("\nOrders after update and delete");
         for (Order order : orderRepo.findAll()) {
             System.out.println(order);
+            System.out.println("Calculated Order Price: " + order.calculateOrderPrice());
         }
     }
 
@@ -101,6 +108,7 @@ public class Main {
     private static void printOrder(Order order) {
         if (order != null) {
             System.out.println(order);
+            System.out.println("Calculated Order Price: " + order.calculateOrderPrice());
         } else {
             System.out.println("Order not found");
         }
