@@ -1,0 +1,14 @@
+# Compiled Java class files
+*.class
+
+# Build and output directories
+bin/
+**/bin/
+out/
+**/out/
+
+# IDE and Editor configurations
+.vscode/
+.idea/
+.kilo/
+*.iml
