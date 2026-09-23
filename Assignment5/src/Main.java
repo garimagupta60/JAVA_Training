@@ -32,7 +32,11 @@ public class Main {
         printProduct(productRepo.findById(103));
 
         System.out.println("\nFind product with ID 999");
-        printProduct(productRepo.findById(999));
+        try {
+            printProduct(productRepo.findById(999));
+        } catch (ProductNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
 
         System.out.println("\nUpdate product with ID 104");
 
@@ -79,7 +83,11 @@ public class Main {
         printOrder(orderRepo.findById(5001));
 
         System.out.println("\nFind order with ID 9999");
-        printOrder(orderRepo.findById(9999));
+        try {
+            printOrder(orderRepo.findById(9999));
+        } catch (OrderNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
 
         System.out.println("\nUpdate order with ID 5002");
 

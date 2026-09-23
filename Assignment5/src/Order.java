@@ -25,15 +25,37 @@ public class Order {
     }
 
     public void addProduct(Product product) {
-        if (product != null) {
-            products.add(product);
+        if (product == null) {
+            throw new ProductNotFoundException("Cannot add missing (null) product to order");
         }
+        if (product.getAvailableQuantity() == null || product.getAvailableQuantity() <= 0) {
+            throw new InsufficientInventoryException("Insufficient inventory for product: " + product.getName() + " (Available: " + product.getAvailableQuantity() + ")");
+        }
+        products.add(product);
+    }
+
+    public void addProduct(Product product, int quantity) {
+        if (quantity <= 0) {
+            throw new InvalidOrderException("Invalid quantity: " + quantity + ". Quantity must be greater than zero.");
+        }
+        if (product == null) {
+            throw new ProductNotFoundException("Cannot add missing (null) product to order");
+        }
+        if (product.getAvailableQuantity() == null || product.getAvailableQuantity() < quantity) {
+            throw new InsufficientInventoryException("Insufficient inventory for product: " + product.getName() 
+                    + " (Requested: " + quantity + ", Available: " + product.getAvailableQuantity() + ")");
+        }
+        products.add(product);
     }
 
     public void removeProduct(Product product) {
-        if (product != null) {
-            products.remove(product);
+        if (product == null) {
+            throw new ProductNotFoundException("Cannot remove missing (null) product from order");
         }
+        if (!products.contains(product)) {
+            throw new ProductNotFoundException("Product with ID " + product.getId() + " is not in the order");
+        }
+        products.remove(product);
     }
 
     public Double calculateOrderPrice() {

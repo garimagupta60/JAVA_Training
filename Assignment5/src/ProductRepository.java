@@ -9,8 +9,8 @@ public class ProductRepository {
     private final Map<Integer, Product> products = new HashMap<>();
 
     public Product findById(Integer id) {
-        if (id == null) {
-            return null;
+        if (id == null || !products.containsKey(id)) {
+            throw new ProductNotFoundException("Product with ID " + id + " not found");
         }
         return products.get(id);
     }
@@ -45,14 +45,16 @@ public class ProductRepository {
     }
 
     public void update(Product product) {
-        if (product != null && product.getId() != null && products.containsKey(product.getId())) {
-            products.put(product.getId(), product);
+        if (product == null || product.getId() == null || !products.containsKey(product.getId())) {
+            throw new ProductNotFoundException("Cannot update. Product with ID " + (product != null ? product.getId() : "null") + " not found");
         }
+        products.put(product.getId(), product);
     }
 
     public void delete(Integer id) {
-        if (id != null) {
-            products.remove(id);
+        if (id == null || !products.containsKey(id)) {
+            throw new ProductNotFoundException("Cannot delete. Product with ID " + id + " not found");
         }
+        products.remove(id);
     }
 }

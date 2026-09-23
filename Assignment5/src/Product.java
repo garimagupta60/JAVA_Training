@@ -7,6 +7,9 @@ public class Product {
     private Integer availableQuantity;
 
     public Product(Integer id, String name, Double price, Integer availableQuantity) {
+        if (availableQuantity != null && availableQuantity < 0) {
+            throw new InvalidOrderException("Product quantity cannot be negative: " + availableQuantity);
+        }
         this.id = id;
         this.name = name;
         this.price = price;
@@ -38,6 +41,9 @@ public class Product {
     }
 
     public void setAvailableQuantity(Integer availableQuantity) {
+        if (availableQuantity != null && availableQuantity < 0) {
+            throw new InvalidOrderException("Product quantity cannot be negative: " + availableQuantity);
+        }
         this.availableQuantity = availableQuantity;
     }
 
