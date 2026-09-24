@@ -2,9 +2,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OrderRepository {
 
+    private static final Logger logger = LoggerFactory.getLogger(OrderRepository.class);
     private final Map<Integer, Order> orders = new HashMap<>();
 
     public Order findById(Integer id) {
@@ -25,7 +28,7 @@ public class OrderRepository {
         }
 
         if (orders.containsKey(order.getId())) {
-            System.out.println("Order with ID " + order.getId() + " already exists");
+            logger.warn("Order with ID {} already exists", order.getId());
             return;
         }
 

@@ -3,9 +3,12 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ProductRepository {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProductRepository.class);
     private final Map<Integer, Product> products = new HashMap<>();
 
     public Product findById(Integer id) {
@@ -36,7 +39,7 @@ public class ProductRepository {
         }
 
         if (products.containsKey(product.getId())) {
-            System.out.println("Product with ID " + product.getId() + " already exists");
+            logger.warn("Product with ID {} already exists", product.getId());
             return;
         }
 
