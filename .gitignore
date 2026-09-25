@@ -6,6 +6,8 @@ bin/
 **/bin/
 out/
 **/out/
+target/
+**/target/
 
 # IDE and Editor configurations
 .vscode/
