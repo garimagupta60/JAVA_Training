@@ -2,10 +2,10 @@ package notification;
 
 import java.util.HashMap;
 import java.util.Map;
-import notification.functional.Converter;
-import notification.functional.NotificationSender;
-import notification.functional.NotificationTransformer;
-import notification.functional.NotificationValidator;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import notification.model.Notification;
 import notification.model.NotificationType;
 import notification.service.NotificationProcessor;
@@ -26,13 +26,13 @@ public class Main {
 
                 System.out.println(notification);
 
-                NotificationValidator validMessage = value -> value.getMessage() != null
+                Predicate<Notification> validMessage = value -> value.getMessage() != null
                                 && !value.getMessage().isBlank();
 
-                NotificationValidator validPriority = value -> value.getPriority() >= 1
+                Predicate<Notification> validPriority = value -> value.getPriority() >= 1
                                 && value.getPriority() <= 5;
 
-                NotificationValidator validEmail = value -> {
+                Predicate<Notification> validEmail = value -> {
 
                         if (value.getType() != NotificationType.EMAIL) {
                                 return true;
@@ -46,7 +46,7 @@ public class Main {
                         return true;
                 };
 
-                NotificationValidator validPhone = value -> {
+                Predicate<Notification> validPhone = value -> {
 
                         if (value.getType() != NotificationType.SMS) {
                                 return true;
@@ -60,10 +60,10 @@ public class Main {
                         return true;
                 };
 
-                NotificationValidator validUserId = value -> value.getUserId() != null
+                Predicate<Notification> validUserId = value -> value.getUserId() != null
                                 && !value.getUserId().isBlank();
 
-                NotificationValidator allValidations = validMessage
+                Predicate<Notification> allValidations = validMessage
                                 .and(validPriority)
                                 .and(validEmail)
                                 .and(validPhone)
@@ -71,25 +71,25 @@ public class Main {
 
                 System.out.println(
                                 "Valid message: "
-                                                + validMessage.validate(notification));
+                                                + validMessage.test(notification));
 
                 System.out.println(
                                 "Valid priority: "
-                                                + validPriority.validate(notification));
+                                                + validPriority.test(notification));
 
                 System.out.println(
                                 "Valid email: "
-                                                + validEmail.validate(notification));
+                                                + validEmail.test(notification));
 
                 System.out.println(
                                 "Valid phone: "
-                                                + validPhone.validate(notification));
+                                                + validPhone.test(notification));
 
                 System.out.println(
                                 "Valid userId: "
-                                                + validUserId.validate(notification));
+                                                + validUserId.test(notification));
 
-                NotificationTransformer trimMessage = value -> {
+                UnaryOperator<Notification> trimMessage = value -> {
                         String message = value.getMessage();
                         if (message != null) {
                                 String trimmedMessage = message.trim();
@@ -98,7 +98,7 @@ public class Main {
                         return value;
                 };
 
-                NotificationTransformer uppercaseMessage = value -> {
+                UnaryOperator<Notification> uppercaseMessage = value -> {
                         String message = value.getMessage();
                         if (message != null) {
                                 String uppercase = message.toUpperCase();
@@ -107,7 +107,7 @@ public class Main {
                         return value;
                 };
 
-                NotificationTransformer importantMessage = value -> {
+                UnaryOperator<Notification> importantMessage = value -> {
                         if (value.getPriority() == 5) {
                                 String message = value.getMessage();
                                 String important = IMPORTANT_PREFIX + message;
@@ -116,7 +116,7 @@ public class Main {
                         return value;
                 };
 
-                NotificationTransformer maskEmail = value -> {
+                UnaryOperator<Notification> maskEmail = value -> {
                         String email = value.getEmail();
                         if (email != null && email.contains("@")) {
                                 int atIndex = email.indexOf("@");
@@ -144,7 +144,7 @@ public class Main {
 
                 System.out.println("Before Trim: " + trimTest.getMessage());
 
-                trimTest = trimMessage.transform(trimTest);
+                trimTest = trimMessage.apply(trimTest);
 
                 System.out.println("After Trim: " + trimTest.getMessage());
 
@@ -158,7 +158,7 @@ public class Main {
 
                 System.out.println("\nBefore Uppercase: " + uppercaseTest.getMessage());
 
-                uppercaseTest = uppercaseMessage.transform(uppercaseTest);
+                uppercaseTest = uppercaseMessage.apply(uppercaseTest);
 
                 System.out.println("After Uppercase: " + uppercaseTest.getMessage());
 
@@ -172,7 +172,7 @@ public class Main {
 
                 System.out.println("\nBefore Important: " + importantTest.getMessage());
 
-                importantTest = importantMessage.transform(importantTest);
+                importantTest = importantMessage.apply(importantTest);
 
                 System.out.println("After Important: " + importantTest.getMessage());
 
@@ -186,21 +186,21 @@ public class Main {
 
                 System.out.println("\nBefore Mask Email: " + maskEmailTest.getEmail());
 
-                maskEmailTest = maskEmail.transform(maskEmailTest);
+                maskEmailTest = maskEmail.apply(maskEmailTest);
 
                 System.out.println("After Mask Email: " + maskEmailTest.getEmail());
 
-                NotificationSender emailSender = value -> {
+                Consumer<Notification> emailSender = value -> {
                         System.out.println("EMAIL sent to " + value.getEmail());
                         System.out.println("Message: " + value.getMessage());
                 };
 
-                NotificationSender smsSender = value -> {
+                Consumer<Notification> smsSender = value -> {
                         System.out.println("SMS sent to " + value.getPhone());
                         System.out.println("Message: " + value.getMessage());
                 };
 
-                NotificationSender pushSender = value -> {
+                Consumer<Notification> pushSender = value -> {
                         System.out.println("PUSH notification sent to user " + value.getUserId());
                         System.out.println("Message: " + value.getMessage());
                 };
@@ -214,7 +214,7 @@ public class Main {
                                 NotificationType.EMAIL,
                                 3);
 
-                emailSender.send(emailNotification);
+                emailSender.accept(emailNotification);
 
                 Notification smsNotification = new Notification(
                                 "U107",
@@ -224,7 +224,7 @@ public class Main {
                                 NotificationType.SMS,
                                 4);
 
-                smsSender.send(smsNotification);
+                smsSender.accept(smsNotification);
 
                 Notification pushNotification = new Notification(
                                 "U108",
@@ -234,9 +234,9 @@ public class Main {
                                 NotificationType.PUSH,
                                 2);
 
-                pushSender.send(pushNotification);
+                pushSender.accept(pushNotification);
 
-                Map<NotificationType, NotificationSender> senderMap = new HashMap<>();
+                Map<NotificationType, Consumer<Notification>> senderMap = new HashMap<>();
 
                 senderMap.put(NotificationType.EMAIL, emailSender);
                 senderMap.put(NotificationType.SMS, smsSender);
@@ -244,23 +244,23 @@ public class Main {
 
                 System.out.println("\n--- Testing Routing ---");
 
-                NotificationSender emailRoutedSender = senderMap.get(emailNotification.getType());
+                Consumer<Notification> emailRoutedSender = senderMap.get(emailNotification.getType());
                 if (emailRoutedSender != null) {
-                        emailRoutedSender.send(emailNotification);
+                        emailRoutedSender.accept(emailNotification);
                 }
 
                 System.out.println();
 
-                NotificationSender smsRoutedSender = senderMap.get(smsNotification.getType());
+                Consumer<Notification> smsRoutedSender = senderMap.get(smsNotification.getType());
                 if (smsRoutedSender != null) {
-                        smsRoutedSender.send(smsNotification);
+                        smsRoutedSender.accept(smsNotification);
                 }
 
                 System.out.println();
 
-                NotificationSender pushRoutedSender = senderMap.get(pushNotification.getType());
+                Consumer<Notification> pushRoutedSender = senderMap.get(pushNotification.getType());
                 if (pushRoutedSender != null) {
-                        pushRoutedSender.send(pushNotification);
+                        pushRoutedSender.accept(pushNotification);
                 }
 
                 System.out.println("\n--- Testing Notification Processor ---");
@@ -294,7 +294,7 @@ public class Main {
 
                 System.out.println("\n--- Testing Validator Composition (.and()) ---");
 
-                boolean isAllValid = allValidations.validate(emailNotification);
+                boolean isAllValid = allValidations.test(emailNotification);
                 System.out.println("All validations passed: " + isAllValid);
 
                 NotificationProcessor combinedProcessor = new NotificationProcessor(
@@ -307,7 +307,7 @@ public class Main {
 
                 System.out.println("\n--- Testing Generic Converters ---");
 
-                Converter<Notification, String> notificationToString = value -> {
+                Function<Notification, String> notificationToString = value -> {
                     return value.getUserId()
                             + " - "
                             + value.getType()
@@ -315,30 +315,30 @@ public class Main {
                             + value.getPriority();
                 };
 
-                String notificationText = notificationToString.convert(notification);
+                String notificationText = notificationToString.apply(notification);
 
                 System.out.println("\nNotification to String:");
                 System.out.println(notificationText);
 
-                Converter<String, Integer> stringToInteger = value -> {
+                Function<String, Integer> stringToInteger = value -> {
                     return Integer.parseInt(value);
                 };
 
-                Integer number = stringToInteger.convert("123");
+                Integer number = stringToInteger.apply("123");
 
                 System.out.println("\nString to Integer:");
                 System.out.println(number);
 
-                Converter<Integer, String> integerToString = value -> {
+                Function<Integer, String> integerToString = value -> {
                     return String.valueOf(value);
                 };
 
-                String numberText = integerToString.convert(456);
+                String numberText = integerToString.apply(456);
 
                 System.out.println("\nInteger to String:");
                 System.out.println(numberText);
 
-                Converter<Integer, String> priorityToLabel = value -> {
+                Function<Integer, String> priorityToLabel = value -> {
 
                     if (value >= 1 && value <= 2) {
                         return "LOW";
@@ -357,10 +357,10 @@ public class Main {
 
                 System.out.println("\nPriority to Label:");
 
-                System.out.println("Priority 1: " + priorityToLabel.convert(1));
-                System.out.println("Priority 2: " + priorityToLabel.convert(2));
-                System.out.println("Priority 3: " + priorityToLabel.convert(3));
-                System.out.println("Priority 4: " + priorityToLabel.convert(4));
-                System.out.println("Priority 5: " + priorityToLabel.convert(5));
+                System.out.println("Priority 1: " + priorityToLabel.apply(1));
+                System.out.println("Priority 2: " + priorityToLabel.apply(2));
+                System.out.println("Priority 3: " + priorityToLabel.apply(3));
+                System.out.println("Priority 4: " + priorityToLabel.apply(4));
+                System.out.println("Priority 5: " + priorityToLabel.apply(5));
         }
 }

@@ -1,20 +1,20 @@
 package notification.service;
 
-import notification.functional.NotificationSender;
-import notification.functional.NotificationTransformer;
-import notification.functional.NotificationValidator;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import notification.model.Notification;
 
 public class NotificationProcessor {
 
-    private NotificationValidator validator;
-    private NotificationTransformer transformer;
-    private NotificationSender sender;
+    private Predicate<Notification> validator;
+    private UnaryOperator<Notification> transformer;
+    private Consumer<Notification> sender;
 
     public NotificationProcessor(
-            NotificationValidator validator,
-            NotificationTransformer transformer,
-            NotificationSender sender) {
+            Predicate<Notification> validator,
+            UnaryOperator<Notification> transformer,
+            Consumer<Notification> sender) {
 
         this.validator = validator;
         this.transformer = transformer;
@@ -23,7 +23,7 @@ public class NotificationProcessor {
 
     public void process(Notification notification) {
 
-        boolean isValid = validator.validate(notification);
+        boolean isValid = validator.test(notification);
 
         if (!isValid) {
             System.out.println("Notification is invalid.");
@@ -31,8 +31,8 @@ public class NotificationProcessor {
         }
 
         Notification transformedNotification =
-                transformer.transform(notification);
+                transformer.apply(notification);
 
-        sender.send(transformedNotification);
+        sender.accept(transformedNotification);
     }
 }
