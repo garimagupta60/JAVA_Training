@@ -5,19 +5,42 @@ public class Order {
 
     private final Integer id;
     private final Set<Product> products;
+    private final Customer customer;
+    private OrderStatus status;
 
-    public Order(Integer id) {
+    public Order(Integer id, Customer customer, OrderStatus status) {
         this.id = id;
+        this.customer = customer;
+        this.status = status;
         this.products = new HashSet<>();
     }
 
-    public Order(Integer id, Set<Product> products) {
+    public Order(
+            Integer id,
+            Customer customer,
+            OrderStatus status,
+            Set<Product> products) {
+
         this.id = id;
+        this.customer = customer;
+        this.status = status;
         this.products = products != null ? new HashSet<>(products) : new HashSet<>();
     }
 
     public Integer getId() {
         return id;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
     }
 
     public Set<Product> getProducts() {
@@ -60,13 +83,11 @@ public class Order {
     }
 
     public Double calculateOrderPrice() {
-        double total = 0.0;
-        for (Product product : products) {
-            if (product != null && product.getPrice() != null) {
-                total += product.getPrice();
-            }
-        }
-        return total;
+        return products.stream()
+                .filter(product -> product != null)
+                .filter(product -> product.getPrice() != null)
+                .mapToDouble(Product::getPrice)
+                .sum();
     }
 
     @Override

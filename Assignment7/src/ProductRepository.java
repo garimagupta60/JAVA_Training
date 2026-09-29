@@ -3,12 +3,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class ProductRepository {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProductRepository.class);
     private final Map<Integer, Product> products = new HashMap<>();
 
     public Product findById(Integer id) {
@@ -23,13 +19,25 @@ public class ProductRepository {
     }
 
     public List<Product> findAllSorted(Comparator<Product> comparator) {
+        return products.values()
+                .stream()
+                .sorted(comparator)
+                .toList();
+    }
 
-        List<Product> sortedProducts =
-                new ArrayList<>(products.values());
+    public List<String> getProductNames() {
+        return products.values()
+                .stream()
+                .map(Product::getName)
+                .toList();
+    }
 
-        sortedProducts.sort(comparator);
-
-        return sortedProducts;
+    public List<Product> getProductsBelowStockThreshold(int threshold) {
+        return products.values()
+                .stream()
+                .filter(product ->
+                        product.getAvailableQuantity() < threshold)
+                .toList();
     }
 
     public void save(Product product) {
@@ -39,7 +47,7 @@ public class ProductRepository {
         }
 
         if (products.containsKey(product.getId())) {
-            logger.warn("Product with ID {} already exists", product.getId());
+            System.out.println("Product with ID " + product.getId() + " already exists");
             return;
         }
 

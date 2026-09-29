@@ -2,12 +2,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class OrderRepository {
 
-    private static final Logger logger = LoggerFactory.getLogger(OrderRepository.class);
     private final Map<Integer, Order> orders = new HashMap<>();
 
     public Order findById(Integer id) {
@@ -21,6 +18,20 @@ public class OrderRepository {
         return new ArrayList<>(orders.values());
     }
 
+    public List<Order> getOrdersByCustomer(Customer customer) {
+        return orders.values()
+                .stream()
+                .filter(order -> order.getCustomer().equals(customer))
+                .toList();
+    }
+
+    public List<Order> getOrdersByStatus(OrderStatus status) {
+        return orders.values()
+                .stream()
+                .filter(order -> order.getStatus() == status)
+                .toList();
+    }
+
     public void save(Order order) {
 
         if (order == null || order.getId() == null) {
@@ -28,7 +39,7 @@ public class OrderRepository {
         }
 
         if (orders.containsKey(order.getId())) {
-            logger.warn("Order with ID {} already exists", order.getId());
+            System.out.println("Order with ID " + order.getId() + " already exists");
             return;
         }
 
@@ -44,12 +55,11 @@ public class OrderRepository {
                 throw new InvalidOrderException("Invalid quantity for product: " + product.getName());
             }
             if (product.getAvailableQuantity() <= 0) {
-                throw new InsufficientInventoryException("Insufficient inventory for product: " + product.getName() 
+                throw new InsufficientInventoryException("Insufficient inventory for product: " + product.getName()
                         + " (Available: " + product.getAvailableQuantity() + ")");
             }
         }
 
-        // Deduct inventory for each product in the order
         for (Product product : order.getProducts()) {
             product.setAvailableQuantity(product.getAvailableQuantity() - 1);
         }
@@ -59,7 +69,8 @@ public class OrderRepository {
 
     public void update(Order order) {
         if (order == null || order.getId() == null || !orders.containsKey(order.getId())) {
-            throw new OrderNotFoundException("Cannot update. Order with ID " + (order != null ? order.getId() : "null") + " not found");
+            throw new OrderNotFoundException(
+                    "Cannot update. Order with ID " + (order != null ? order.getId() : "null") + " not found");
         }
         if (order.getProducts() == null || order.getProducts().isEmpty()) {
             throw new InvalidOrderException("Cannot update order to be empty (Order ID: " + order.getId() + ")");

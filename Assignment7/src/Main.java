@@ -1,5 +1,6 @@
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Main {
@@ -11,6 +12,7 @@ public class Main {
 
         testProductRepository(productRepository);
         testOrderRepository(orderRepository, productRepository);
+        testStreamQueries(orderRepository, productRepository);
     }
 
     private static void testProductRepository(ProductRepository productRepo) {
@@ -54,16 +56,19 @@ public class Main {
 
     private static void testOrderRepository(OrderRepository orderRepo, ProductRepository productRepo) {
 
+        Customer customer1 = new Customer(1, "Customer 1");
+        Customer customer2 = new Customer(2, "Customer 2");
+
         Product p101 = productRepo.findById(101);
         Product p102 = productRepo.findById(102);
         Product p103 = productRepo.findById(103);
         Product p104 = productRepo.findById(104);
 
-        Order order1 = new Order(5001);
+        Order order1 = new Order(5001, customer1, OrderStatus.SHIPPED);
         order1.addProduct(p101);
         order1.addProduct(p103);
         order1.addProduct(p104);
-        order1.addProduct(p101); // Attempt duplicate add
+        order1.addProduct(p101);
 
         orderRepo.save(order1);
 
@@ -71,7 +76,12 @@ public class Main {
         products5002.add(p102);
         products5002.add(p103);
 
-        orderRepo.save(new Order(5002, products5002));
+        orderRepo.save(
+                new Order(
+                        5002,
+                        customer2,
+                        OrderStatus.PENDING,
+                        products5002));
 
         System.out.println("\nAll Orders");
         for (Order order : orderRepo.findAll()) {
@@ -96,10 +106,14 @@ public class Main {
         updatedProducts.add(p103);
         updatedProducts.add(p104);
 
-        orderRepo.update(new Order(5002, updatedProducts));
-
+        orderRepo.update(
+                new Order(
+                        5002,
+                        customer2,
+                        OrderStatus.SHIPPED,
+                        updatedProducts));
         System.out.println("\nDelete order with ID 5001");
-        orderRepo.delete(5001);
+        // orderRepo.delete(5001); //Commenting for testing streams
 
         System.out.println("\nOrders after update and delete");
         for (Order order : orderRepo.findAll()) {
@@ -108,21 +122,55 @@ public class Main {
         }
     }
 
+    private static void testStreamQueries(
+            OrderRepository orderRepo,
+            ProductRepository productRepo) {
+
+        Customer customer = new Customer(1, "Customer 1");
+
+        testOrdersByCustomer(orderRepo, customer);
+        testOrdersByStatus(orderRepo);
+        testProductsBelowStockThreshold(productRepo);
+    }
+
+    private static void testProductsBelowStockThreshold(
+            ProductRepository productRepo) {
+
+        int threshold = 10;
+        List<Product> products = productRepo.getProductsBelowStockThreshold(threshold);
+        printList("Products Below Stock Threshold: " + threshold, products);
+    }
+
+    private static void testOrdersByStatus(OrderRepository orderRepo) {
+        List<Order> orders = orderRepo.getOrdersByStatus(OrderStatus.SHIPPED);
+        printList("Shipped Orders", orders);
+    }
+
+    private static void testOrdersByCustomer(
+            OrderRepository orderRepo,
+            Customer customer) {
+
+        List<Order> orders = orderRepo.getOrdersByCustomer(customer);
+        printList("Orders for Customer: " + customer.getName(), orders);
+    }
+
     private static void printProduct(Product product) {
-        if (product != null) {
-            System.out.println(product);
-        } else {
+        if (product == null) {
             System.out.println("Product not found");
+            return;
         }
+
+        System.out.println(product);
     }
 
     private static void printOrder(Order order) {
-        if (order != null) {
-            System.out.println(order);
-            System.out.println("Calculated Order Price: " + order.calculateOrderPrice());
-        } else {
+        if (order == null) {
             System.out.println("Order not found");
+            return;
         }
+
+        System.out.println(order);
+        System.out.println("Calculated Order Price: " + order.calculateOrderPrice());
     }
 
     public static <T> void printList(String title, Collection<T> items) {
