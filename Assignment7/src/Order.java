@@ -82,12 +82,12 @@ public class Order {
         products.remove(product);
     }
 
-    public Double calculateOrderPrice() {
+    public Double calculateOrderTotal() {
         return products.stream()
                 .filter(product -> product != null)
                 .filter(product -> product.getPrice() != null)
-                .mapToDouble(Product::getPrice)
-                .sum();
+                .map(Product::getPrice)
+                .reduce(0.0, (total, number) -> total + number);
     }
 
     @Override
@@ -95,7 +95,7 @@ public class Order {
         return "Order{" +
                 "id=" + id +
                 ", products=" + products +
-                ", totalPrice=" + calculateOrderPrice() +
+                ", totalPrice=" + calculateOrderTotal() +
                 '}';
     }
 }

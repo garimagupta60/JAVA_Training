@@ -1,6 +1,8 @@
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class Main {
@@ -31,11 +33,12 @@ public class Main {
         printList("All Products", productRepo.findAll());
 
         System.out.println("\nFind product with ID 103");
-        printProduct(productRepo.findById(103));
+        printProduct(productRepo.findById(103).orElse(null));
 
         System.out.println("\nFind product with ID 999");
         try {
-            printProduct(productRepo.findById(999));
+            printProduct(productRepo.findById(999)
+                    .orElseThrow(() -> new ProductNotFoundException("Product with ID 999 not found")));
         } catch (ProductNotFoundException e) {
             System.out.println(e.getMessage());
         }
@@ -59,10 +62,14 @@ public class Main {
         Customer customer1 = new Customer(1, "Customer 1");
         Customer customer2 = new Customer(2, "Customer 2");
 
-        Product p101 = productRepo.findById(101);
-        Product p102 = productRepo.findById(102);
-        Product p103 = productRepo.findById(103);
-        Product p104 = productRepo.findById(104);
+        Product p101 = productRepo.findById(101)
+                .orElseThrow(() -> new ProductNotFoundException("Product with ID 101 not found"));
+        Product p102 = productRepo.findById(102)
+                .orElseThrow(() -> new ProductNotFoundException("Product with ID 102 not found"));
+        Product p103 = productRepo.findById(103)
+                .orElseThrow(() -> new ProductNotFoundException("Product with ID 103 not found"));
+        Product p104 = productRepo.findById(104)
+                .orElseThrow(() -> new ProductNotFoundException("Product with ID 104 not found"));
 
         Order order1 = new Order(5001, customer1, OrderStatus.SHIPPED);
         order1.addProduct(p101);
@@ -86,15 +93,16 @@ public class Main {
         System.out.println("\nAll Orders");
         for (Order order : orderRepo.findAll()) {
             System.out.println(order);
-            System.out.println("Calculated Order Price: " + order.calculateOrderPrice());
+            System.out.println("Calculated Order Price: " + order.calculateOrderTotal());
         }
 
         System.out.println("\nFind order with ID 5001");
-        printOrder(orderRepo.findById(5001));
+        printOrder(orderRepo.findById(5001).orElse(null));
 
         System.out.println("\nFind order with ID 9999");
         try {
-            printOrder(orderRepo.findById(9999));
+            printOrder(orderRepo.findById(9999)
+                    .orElseThrow(() -> new OrderNotFoundException("Order with ID 9999 not found")));
         } catch (OrderNotFoundException e) {
             System.out.println(e.getMessage());
         }
@@ -118,7 +126,7 @@ public class Main {
         System.out.println("\nOrders after update and delete");
         for (Order order : orderRepo.findAll()) {
             System.out.println(order);
-            System.out.println("Calculated Order Price: " + order.calculateOrderPrice());
+            System.out.println("Calculated Order Price: " + order.calculateOrderTotal());
         }
     }
 
@@ -131,6 +139,25 @@ public class Main {
         testOrdersByCustomer(orderRepo, customer);
         testOrdersByStatus(orderRepo);
         testProductsBelowStockThreshold(productRepo);
+        testOrderSummariesByStatus(orderRepo);
+        testTopSellingProduct(orderRepo);
+    }
+
+    private static void testTopSellingProduct(OrderRepository orderRepo) {
+
+        System.out.println("\nTop Selling Product");
+
+        Optional<Map.Entry<Product, Long>> result =
+                orderRepo.getTopSellingProduct();
+
+        if (result.isPresent()) {
+            Product product = result.get().getKey();
+            Long quantity = result.get().getValue();
+
+            System.out.println(product.getName() + " | Quantity: " + quantity);
+        } else {
+            System.out.println("No products found");
+        }
     }
 
     private static void testProductsBelowStockThreshold(
@@ -144,6 +171,14 @@ public class Main {
     private static void testOrdersByStatus(OrderRepository orderRepo) {
         List<Order> orders = orderRepo.getOrdersByStatus(OrderStatus.SHIPPED);
         printList("Shipped Orders", orders);
+    }
+
+    private static void testOrderSummariesByStatus(OrderRepository orderRepo) {
+        System.out.println("\nOrder Summaries Grouped by Status");
+
+        Map<OrderStatus, Double> totalByStatus = orderRepo.getOrderTotalSumByStatus();
+
+        totalByStatus.forEach((status, total) -> System.out.println("Status: " + status + " | Total Amount: " + total));
     }
 
     private static void testOrdersByCustomer(
@@ -170,7 +205,7 @@ public class Main {
         }
 
         System.out.println(order);
-        System.out.println("Calculated Order Price: " + order.calculateOrderPrice());
+        System.out.println("Calculated Order Price: " + order.calculateOrderTotal());
     }
 
     public static <T> void printList(String title, Collection<T> items) {

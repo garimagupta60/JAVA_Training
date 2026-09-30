@@ -2,16 +2,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class OrderRepository {
 
     private final Map<Integer, Order> orders = new HashMap<>();
 
-    public Order findById(Integer id) {
-        if (id == null || !orders.containsKey(id)) {
-            throw new OrderNotFoundException("Order with ID " + id + " not found");
-        }
-        return orders.get(id);
+    public Optional<Order> findById(Integer id) {
+        return Optional.ofNullable(orders.get(id));
     }
 
     public List<Order> findAll() {
@@ -30,6 +29,32 @@ public class OrderRepository {
                 .stream()
                 .filter(order -> order.getStatus() == status)
                 .toList();
+    }
+
+    public Map<OrderStatus, Double> getOrderTotalSumByStatus() {
+        return orders.values()
+                .stream()
+                .collect(Collectors.groupingBy(
+                        Order::getStatus,
+                        Collectors.summingDouble(Order::calculateOrderTotal)
+                ));
+    }
+
+    public Map<Product, Long> getProductOrderCount() {
+        return orders.values()
+                .stream()
+                .flatMap(order -> order.getProducts().stream())
+                .collect(Collectors.groupingBy(
+                        product -> product,
+                        Collectors.counting()
+                ));
+    }
+
+    public Optional<Map.Entry<Product, Long>> getTopSellingProduct() {
+        return getProductOrderCount()
+                .entrySet()
+                .stream()
+                .max(Map.Entry.comparingByValue());
     }
 
     public void save(Order order) {

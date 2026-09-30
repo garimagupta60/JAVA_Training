@@ -3,16 +3,16 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 public class ProductRepository {
 
     private final Map<Integer, Product> products = new HashMap<>();
 
-    public Product findById(Integer id) {
-        if (id == null || !products.containsKey(id)) {
-            throw new ProductNotFoundException("Product with ID " + id + " not found");
-        }
-        return products.get(id);
+    public Optional<Product> findById(Integer id) {
+        return Optional.ofNullable(products.get(id));
     }
+
 
     public List<Product> findAll() {
         return new ArrayList<>(products.values());
